@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#2d4a3e">
+<title>拥有 · 不花一分钱的满足</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f7f4ef; --card:#ffffff; --ink:#1c1c1a; --sub:#8d8779;
+  --green:#2d4a3e; --green-soft:#e7ece8; --gold:#b08d57; --gold-soft:#f4ecdd;
+  --line:#ece7dd; --red:#c0483f;
+}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",sans-serif;
+  background:var(--bg); color:var(--ink);
+  max-width:520px;margin:0 auto; padding-bottom:calc(100px + env(safe-area-inset-bottom));
+}
+button{font-family:inherit;border:none;background:none;cursor:pointer;color:inherit}
+input{font-family:inherit}
+
+/* ===== 顶栏 ===== */
+header{
+  position:sticky;top:0;z-index:50;background:#f7f4ef;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px 10px;
+}
+.logo{display:flex;align-items:baseline;gap:8px}
+.logo b{font-size:21px;letter-spacing:4px;color:var(--green);font-weight:800}
+.logo span{font-size:10px;color:var(--sub);letter-spacing:1px}
+.wallet{
+  display:flex;align-items:center;gap:6px;background:var(--green);color:#f3ead9;
+  font-size:13px;font-weight:700;padding:6px 13px;border-radius:99px;
+}
+.wallet small{font-size:10px;opacity:.75;font-weight:400}
+
+/* ===== 页面 ===== */
+.page{display:none;padding:6px 18px 24px;animation:fadeIn .25s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ===== 想买卡片 ===== */
+.w-card{
+  background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:14px;
+  box-shadow:0 1px 3px rgba(60,50,30,.06);
+}
+.w-img{position:relative;background:var(--green-soft);overflow:hidden}
+.w-img img{width:100%;height:auto;max-height:300px;object-fit:contain;display:block;background:var(--green-soft)}
+.w-img .noimg{display:flex;align-items:center;justify-content:center;color:#b9b2a0;font-size:15px;letter-spacing:2px}
+.w-days{
+  position:absolute;top:10px;left:10px;background:rgba(28,28,26,.65);color:#fff;
+  font-size:11px;padding:3px 10px;border-radius:99px;
+}
+.w-body{padding:13px 15px 14px}
+.w-name{font-size:15.5px;font-weight:700;line-height:1.45;word-break:break-all}
+.w-note{font-size:12px;color:var(--sub);margin-top:3px;line-height:1.5}
+.w-row{display:flex;align-items:flex-end;justify-content:space-between;margin-top:11px}
+.w-price{font-size:19px;font-weight:800;color:var(--gold)}
+.w-price small{font-size:11px;font-weight:600}
+.w-acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.btn-ghost{
+  font-size:12.5px;color:var(--sub);padding:8px 12px;border-radius:99px;
+  border:1px solid var(--line);background:#fff;
+}
+.btn-buy{
+  font-size:13px;font-weight:700;color:#fff;background:var(--green);
+  padding:9px 18px;border-radius:99px;
+}
+.btn-buy:active{transform:scale(.96)}
+
+/* ===== 标签 ===== */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 4px;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;font-size:12.5px;padding:7px 14px;border-radius:99px;background:#faf8f3;border:1.4px solid var(--line);color:var(--sub);font-weight:500;white-space:nowrap}
+.chip.on{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.chip.new{color:var(--gold);border:1.4px dashed #d8c9ab;background:transparent}
+.chip.editting{display:inline-flex;align-items:center;background:#faf8f3;border:1.4px solid var(--gold)}
+.chip.editting input{width:74px;border:none;outline:none;font-size:12.5px;background:transparent;font-family:inherit;color:var(--ink);padding:0}
+.w-tag{display:inline-block;font-size:10.5px;color:var(--green);background:var(--green-soft);padding:2px 9px;border-radius:99px;margin-bottom:6px;font-weight:600}
+.w-lnk{margin-top:7px;font-size:11.5px;color:var(--gold);font-weight:600;cursor:pointer}
+.w-lnk:active{opacity:.6}
+
+/* ===== 空状态 ===== */
+.empty{text-align:center;padding:64px 30px;color:var(--sub)}
+.empty .big{font-size:17px;color:var(--ink);font-weight:700;letter-spacing:1px;line-height:1.8}
+.empty .mid{font-size:13px;margin-top:10px;line-height:2}
+.empty .go{
+  margin-top:22px;display:inline-block;background:var(--green);color:#fff;
+  font-size:14px;font-weight:700;padding:12px 34px;border-radius:99px;
+}
+
+/* ===== FAB ===== */
+#fab{
+  position:fixed;right:max(18px,calc(50vw - 242px));bottom:calc(78px + env(safe-area-inset-bottom));
+  width:56px;height:56px;border-radius:50%;background:var(--gold);color:#fff;
+  font-size:30px;line-height:1;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 18px rgba(176,141,87,.45);z-index:60;font-weight:300;
+}
+#fab:active{transform:scale(.92)}
+
+/* ===== 底部导航 ===== */
+nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;
+  background:#ffffff;z-index:55;
+  display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line);
+}
+nav .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;color:var(--sub);padding:4px 0}
+nav .tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+nav .tab.on{color:var(--green);font-weight:700}
+
+/* ===== 物流订单 ===== */
+.t-card{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:14px;box-shadow:0 1px 3px rgba(60,50,30,.06)}
+.t-top{display:flex;gap:12px;padding:13px 15px}
+.t-img{width:74px;height:74px;border-radius:10px;background:var(--green-soft);flex-shrink:0;overflow:hidden;object-fit:cover}
+.t-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:3px}
+.t-name{font-size:14px;font-weight:700;line-height:1.4;word-break:break-all}
+.t-price{font-size:15px;font-weight:800;color:var(--gold)}
+.t-status{font-size:11.5px;color:var(--green);font-weight:600}
+.track{display:flex;padding:2px 18px 16px}
+.tk{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative}
+.tk .dot{width:9px;height:9px;border-radius:50%;background:#dcd6c8;z-index:2}
+.tk.done .dot{background:var(--gold)}
+.tk.now .dot{background:var(--green);box-shadow:0 0 0 4px var(--green-soft)}
+.tk .lb{font-size:9.5px;color:var(--sub);transform:scale(.92)}
+.tk.now .lb,.tk.done .lb{color:var(--green);font-weight:600}
+.tk::before{content:'';position:absolute;top:4px;left:-50%;width:100%;height:2px;background:#e7e2d5}
+.tk:first-child::before{display:none}
+.tk.done::before,.tk.now::before{background:var(--gold)}
+.t-hint{font-size:11px;color:var(--sub);padding:0 15px 13px;line-height:1.6}
+.t-acts{display:flex;gap:9px;padding:0 15px 15px}
+.t-acts button{flex:1;font-size:12.5px;padding:9px 0;border-radius:99px;border:1px solid var(--line);color:var(--sub);background:#fff}
+.t-acts .rf{color:var(--green);border-color:#cfdcd4;font-weight:600}
+
+/* 明细弹层 */
+.dt-row{display:flex;align-items:center;gap:11px;padding:11px 2px;border-bottom:1px solid var(--line);font-size:13.5px}
+.dt-row:last-child{border-bottom:none}
+.dt-row .im2{width:44px;height:44px;border-radius:8px;background:var(--green-soft);flex-shrink:0;overflow:hidden;position:relative}
+.dt-row .im2 img{width:100%;height:100%;object-fit:cover}
+.dt-row .nm{flex:1;min-width:0;word-break:break-all;line-height:1.4}
+.dt-row .nm small{display:block;color:var(--sub);font-size:10.5px;margin-top:1px;font-weight:400}
+.dt-row .pr{font-weight:700;color:var(--gold);flex-shrink:0}
+.dt-empty{text-align:center;color:var(--sub);font-size:12.5px;padding:26px 0;line-height:2}
+.dt-head{text-align:center;font-size:11.5px;color:var(--sub);padding-bottom:8px}
+#dt-body{max-height:52vh;overflow:auto;margin-top:2px}
+
+/* ===== 衣柜 ===== */
+.closet-head{padding:14px 4px 16px;text-align:center}
+.closet-head .n{font-size:12.5px;color:var(--sub);line-height:1.9}
+.closet-head .n b{color:var(--green);font-size:17px}
+.c-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.c-item{background:var(--card);border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(60,50,30,.06);cursor:pointer;transition:transform .12s}
+.c-item:active{transform:scale(.97)}
+.c-item .im{background:var(--green-soft);color:#b9b2a0;font-size:12px;letter-spacing:2px;position:relative;overflow:hidden}
+.c-item .im img{width:100%;height:auto;max-height:260px;object-fit:contain;display:block}
+.c-item .tx{padding:9px 11px 11px}
+.c-item .nm{font-size:12.5px;font-weight:700;line-height:1.4;word-break:break-all;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.c-item .pr{font-size:12.5px;font-weight:800;color:var(--gold);margin-top:4px}
+
+/* ===== 我的 ===== */
+.m-card{background:var(--card);border-radius:16px;padding:20px 18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(60,50,30,.06)}
+.m-wallet .lb{font-size:11.5px;color:var(--sub);letter-spacing:2px}
+.m-wallet .num{font-size:38px;font-weight:800;color:var(--green);margin:6px 0 2px;letter-spacing:1px}
+.m-wallet .sub{font-size:11.5px;color:var(--sub)}
+.m-bar{height:6px;background:var(--green-soft);border-radius:99px;margin-top:14px;overflow:hidden}
+.m-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--gold));border-radius:99px}
+.m-rows{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.m-cell{padding:14px 6px;text-align:center;cursor:pointer;transition:background .15s}
+.m-cell:active{background:#faf8f3}
+.m-cell+.m-cell{border-left:1px solid var(--line)}
+.m-cell .v{font-size:20px;font-weight:800;color:var(--ink)}
+.m-cell .v.gold{color:var(--gold)}
+.m-cell .v.green{color:var(--green)}
+.m-cell .k{font-size:11px;color:var(--sub);margin-top:3px}
+.m-quote{font-size:12px;color:var(--sub);line-height:2;text-align:center;padding:6px 10px}
+
+/* ===== 弹层 ===== */
+.mask{position:fixed;inset:0;background:rgba(20,18,12,.45);z-index:90;opacity:0;pointer-events:none;transition:opacity .22s}
+.mask.show{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;left:50%;transform:translate(-50%,110%);bottom:0;width:100%;max-width:520px;
+  background:#fff;border-radius:22px 22px 0 0;z-index:95;padding:20px 20px calc(22px + env(safe-area-inset-bottom));
+  transition:transform .28s cubic-bezier(.32,.72,.28,1);
+  max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+}
+.sheet.show{transform:translate(-50%,0)}
+.sh-title{font-size:16.5px;font-weight:800;margin-bottom:16px;text-align:center}
+.sh-sub{font-size:12px;color:var(--sub);text-align:center;margin-top:-12px;margin-bottom:14px}
+.pick{
+  aspect-ratio:4/3;border:1.6px dashed #cfc8b6;border-radius:14px;background:#faf8f3;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  color:#b3ac99;font-size:13px;overflow:hidden;position:relative;
+}
+.pick.hasimg{aspect-ratio:auto;min-height:60px}
+.pick input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;z-index:2}
+.pick img{position:relative;width:100%;height:auto;max-height:46vh;object-fit:contain;display:block;border-radius:14px}
+.pick .ic{font-size:26px;color:#b3ac99;font-weight:300}
+.fld{margin-top:13px}
+.fld label{font-size:12px;color:var(--sub);display:block;margin-bottom:6px}
+.fld input{
+  width:100%;border:1.4px solid var(--line);border-radius:12px;padding:12px 14px;font-size:15px;
+  background:#fdfcf9;color:var(--ink);outline:none;
+}
+.fld input:focus{border-color:var(--green)}
+.btn-main{
+  width:100%;background:var(--green);color:#fff;font-size:15.5px;font-weight:700;
+  padding:14px;border-radius:14px;margin-top:18px;
+}
+.btn-main:active{transform:scale(.98)}
+.btn-line{width:100%;border:1.4px solid var(--line);color:var(--sub);font-size:14px;padding:12px;border-radius:14px;margin-top:10px}
+
+/* 支付确认 */
+.pay-prod{display:flex;gap:13px;background:#faf8f3;border-radius:14px;padding:13px}
+.pay-prod img,.pay-prod .ph{width:64px;height:64px;border-radius:10px;object-fit:cover;background:var(--green-soft);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;color:#b9b2a0;font-size:11px}
+.pay-prod .i{flex:1;min-width:0}
+.pay-prod .n{font-size:14px;font-weight:700;line-height:1.4;word-break:break-all}
+.pay-prod .p{font-size:17px;font-weight:800;color:var(--gold);margin-top:4px}
+.pay-nums{margin-top:16px;background:#faf8f3;border-radius:14px;padding:4px 15px}
+.pn{display:flex;justify-content:space-between;padding:10px 0;font-size:13.5px;color:var(--sub)}
+.pn+.pn{border-top:1px solid var(--line)}
+.pn b{color:var(--ink)}
+.pn b.big{color:var(--green);font-size:15px}
+
+/* 成功层 */
+.done-wrap{text-align:center;padding:16px 6px 8px}
+.done-ic{
+  width:70px;height:70px;border-radius:50%;background:var(--green-soft);margin:0 auto;
+  display:flex;align-items:center;justify-content:center;
+}
+.done-ic svg{width:34px;height:34px;stroke:var(--green);stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.done-t{font-size:18px;font-weight:800;margin-top:16px}
+.done-s{font-size:13px;color:var(--sub);margin-top:8px;line-height:1.9}
+.done-s b{color:var(--gold);font-size:15px}
+
+/* 删除层（两个选择） */
+.del-q{font-size:14.5px;line-height:1.9;color:var(--sub);text-align:center;margin-bottom:4px}
+.del-q b{color:var(--ink)}
+.btn-gold{width:100%;background:var(--gold);color:#fff;font-size:15px;font-weight:700;padding:14px;border-radius:14px;margin-top:16px}
+
+/* toast */
+#toast{
+  position:fixed;bottom:calc(120px + env(safe-area-inset-bottom));left:50%;transform:translate(-50%,20px);
+  background:rgba(28,28,26,.88);color:#fff;font-size:13px;padding:10px 20px;border-radius:99px;
+  opacity:0;transition:all .25s;z-index:120;pointer-events:none;max-width:86%;text-align:center;
+}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ===== 设置 ===== */
+.set-open{display:flex;justify-content:space-between;align-items:center;font-size:14.5px;font-weight:700;cursor:pointer;padding:4px 2px}
+.set-open:active{opacity:.55}
+.set-open span{color:var(--sub);font-weight:400;font-size:18px}
+.st-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 2px;border-bottom:1px solid var(--line)}
+.st-row:last-of-type{border-bottom:none}
+.st-l b{font-size:14px;display:block}
+.st-l small{font-size:11px;color:var(--sub);display:block;margin-top:2px;line-height:1.5}
+.st-btn{flex-shrink:0;font-size:12.5px;padding:7px 14px;border-radius:99px;border:1.4px solid var(--line);color:var(--green);background:#fff;font-weight:600}
+.st-btn:active{opacity:.6}
+.st-btn.danger{color:var(--red);border-color:#eccfcb}
+.st-btn input{width:80px;font-size:13px;font-weight:700;color:var(--green);text-align:right;border:none;border-bottom:2px solid var(--green);outline:none;background:transparent;font-family:inherit;padding:0}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><b>拥 有</b><span>不花一分钱的满足</span></div>
+  <div class="wallet"><small>积分</small><span id="hd-bal">--</span></div>
+</header>
+
+<section id="page-want" class="page active"></section>
+<section id="page-transit" class="page"></section>
+<section id="page-closet" class="page"></section>
+<section id="page-mine" class="page"></section>
+
+<button id="fab">+</button>
+
+<nav>
+  <button class="tab on" data-tab="want">
+    <svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-9.3-9C1 8.5 3 5 6.5 5c2 0 3.4 1 4.4 2.4h2.2C14.1 6 15.5 5 17.5 5 21 5 23 8.5 21.3 12 19 16.4 12 21 12 21z"/></svg>
+    想买
+  </button>
+  <button class="tab" data-tab="transit">
+    <svg viewBox="0 0 24 24"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z"/><circle cx="7" cy="17" r="1.8"/><circle cx="17" cy="17" r="1.8"/></svg>
+    在途
+  </button>
+  <button class="tab" data-tab="closet">
+    <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 9h16M12 4v16M8.5 13h1M14.5 13h1"/></svg>
+    我的柜
+  </button>
+  <button class="tab" data-tab="mine">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c1.2-3.6 4-5.2 7-5.2s5.8 1.6 7 5.2"/></svg>
+    我的
+  </button>
+</nav>
+
+<!-- 添加 -->
+<div class="mask" id="add-mask"></div>
+<div class="sheet" id="add-sheet">
+  <div class="sh-title" id="add-title">存入一件心动好物</div>
+  <div class="sh-sub">粘贴链接自动识别 · 或截图从相册上传</div>
+  <div class="fld">
+    <label>粘贴链接，自动识别（淘宝 / 拼多多 / 小红书 / 抖音）</label>
+    <div style="display:flex;gap:8px;align-items:stretch">
+      <input id="in-smart" placeholder="整段分享文案直接糊进来（口令、标题、链接混合的都行）" style="flex:1;min-width:0" maxlength="500">
+      <button type="button" class="st-btn" id="smart-go" style="flex-shrink:0;padding:0 16px;border-radius:12px;font-size:13.5px">识别</button>
+    </div>
+    <div id="smart-st" style="font-size:11px;color:var(--sub);margin-top:7px;display:none;line-height:1.6"></div>
+  </div>
+  <div class="pick" id="pick">
+    <span class="ic">＋</span>
+    <span>添加截图（拍照或从相册选）</span>
+    <img id="pick-img" style="display:none" alt="">
+    <input type="file" id="pick-input" accept="image/*">
+  </div>
+  <div class="fld">
+    <label>它是什么 *</label>
+    <input id="in-name" placeholder="例如：奶油白针织开衫" maxlength="40">
+  </div>
+  <div class="fld">
+    <label>大概多少钱 *</label>
+    <input id="in-price" type="number" inputmode="decimal" placeholder="例如：199" min="0">
+  </div>
+  <div class="fld">
+    <label>分类标签（方便以后找）</label>
+    <div class="chips" id="tag-chips"></div>
+  </div>
+  <div class="fld">
+    <label>备注（可不填）</label>
+    <input id="in-note" placeholder="例如：刷到的那个博主的同款" maxlength="60">
+  </div>
+  <div class="fld">
+    <label>商品链接（可不填，真想买时能找到它）</label>
+    <input id="in-url" placeholder="粘贴小红书 / 淘宝链接" maxlength="500">
+  </div>
+  <button class="btn-main" id="add-save">存入想买</button>
+  <button class="btn-line" id="add-cancel">取消</button>
+</div>
+
+<!-- 支付确认 -->
+<div class="mask" id="pay-mask"></div>
+<div class="sheet" id="pay-sheet">
+  <div class="sh-title">确认支付</div>
+  <div class="pay-prod">
+    <div class="ph" id="pay-ph">无图</div>
+    <img id="pay-img" style="display:none" alt="">
+    <div class="i"><div class="n" id="pay-name"></div><div class="p" id="pay-price"></div></div>
+  </div>
+  <div class="pay-nums">
+    <div class="pn"><span>支付方式</span><b>积分（1积分=¥1，不花真钱）</b></div>
+    <div class="pn"><span>当前余额</span><b id="pay-bal"></b></div>
+    <div class="pn"><span>支付后余额</span><b class="big" id="pay-after"></b></div>
+  </div>
+  <button class="btn-main" id="pay-ok">支付</button>
+  <button class="btn-line" id="pay-cancel">再想想</button>
+</div>
+
+<!-- 成功 -->
+<div class="mask" id="ok-mask"></div>
+<div class="sheet" id="ok-sheet">
+  <div class="done-wrap">
+    <div class="done-ic"><svg viewBox="0 0 24 24"><path d="M5 13l4.5 4.5L19 8"/></svg></div>
+    <div class="done-t">买到了！</div>
+    <div class="done-s" id="ok-txt"></div>
+  </div>
+  <button class="btn-main" id="ok-close">好的</button>
+</div>
+
+<!-- 删除 -->
+<div class="mask" id="del-mask"></div>
+<div class="sheet" id="del-sheet">
+  <div class="sh-title">还想要它吗</div>
+  <div class="del-q" id="del-q"></div>
+  <button class="btn-main" id="del-keep" style="background:var(--green)">先留着，再犹豫一下</button>
+  <button class="btn-gold" id="del-drop">不想要了（省下这笔钱）</button>
+</div>
+
+<!-- 衣柜单件操作 -->
+<div class="mask" id="cs-mask"></div>
+<div class="sheet" id="cs-sheet">
+  <div class="sh-title">这笔拥有</div>
+  <div class="pay-prod">
+    <div class="ph" id="cs-ph">无图</div>
+    <img id="cs-img" style="display:none" alt="">
+    <div class="i"><div class="n" id="cs-name"></div><div class="p" id="cs-price"></div></div>
+  </div>
+  <button class="btn-main" id="cs-link" style="background:var(--gold);display:none">打开商品链接（真想买时用）</button>
+  <button class="btn-main" id="cs-refund">退了它（积分全额退回，回到想买）</button>
+  <button class="btn-gold" id="cs-del">删除记录（积分不退）</button>
+  <button class="btn-line" id="cs-edit">编辑资料（改名/改价/改标签）</button>
+  <button class="btn-line" id="cs-close">关闭</button>
+</div>
+
+<!-- 明细 -->
+<div class="mask" id="dt-mask"></div>
+<div class="sheet" id="dt-sheet">
+  <div class="sh-title" id="dt-title"></div>
+  <div id="dt-body"></div>
+  <button class="btn-line" id="dt-close" style="margin-top:14px">关闭</button>
+</div>
+
+<!-- 设置 -->
+<div class="mask" id="st-mask"></div>
+<div class="sheet" id="st-sheet">
+  <div class="sh-title">设置</div>
+  <div class="st-row">
+    <div class="st-l"><b>每日积分额度</b><small>每天凌晨 1 点刷新的积分数</small></div>
+    <button class="st-btn" id="st-budget"><span id="st-budget-v">10,000</span></button>
+  </div>
+  <div class="st-row">
+    <div class="st-l"><b>导出备份</b><small>下载一个包含全部记录和截图的备份文件</small></div>
+    <button class="st-btn" id="st-export">导出</button>
+  </div>
+  <div class="st-row">
+    <div class="st-l"><b>从备份导入</b><small>换手机 / 换浏览器时恢复数据</small></div>
+    <button class="st-btn" id="st-import">导入</button>
+  </div>
+  <div class="st-row">
+    <div class="st-l"><b>清空所有数据</b><small>删除全部想买、订单、衣柜记录和截图</small></div>
+    <button class="st-btn danger" id="st-clear">清空</button>
+  </div>
+  <div class="st-row">
+    <div class="st-l"><b>关于「拥有」</b><small>v1.6 · 欲望被满足，钱包毫发无损<br>所有数据只存在你的手机里</small></div>
+  </div>
+  <button class="btn-line" id="st-close" style="margin-top:14px">关闭</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+var $=function(s){return document.querySelector(s)};
+var $$=function(s){return document.querySelectorAll(s)};
+var LS='own_app_v1';
+var MONTHLY=10000;
+
+var state=load();
+function load(){
+  try{
+    var s=JSON.parse(localStorage.getItem(LS));
+    if(s&&Array.isArray(s.items))return s;
+  }catch(e){}
+  return {balance:MONTHLY,dayKey:'',items:[],saved:0,vspent:0,vorders:0,savedLog:[],tags:[],dailyBudget:MONTHLY};
+}
+if(!Array.isArray(state.savedLog))state.savedLog=[];
+if(!Array.isArray(state.tags))state.tags=[];
+if(!(state.dailyBudget>0))state.dailyBudget=MONTHLY;
+function save(){localStorage.setItem(LS,JSON.stringify(state))}
+
+/* 每天凌晨 1 点刷新积分 */
+function periodKey(ts){
+  var d=new Date(ts);
+  if(d.getHours()<1)d=new Date(ts-864e5); // 0点~1点仍属于前一天周期
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+d.getDate();
+}
+function refreshDay(){
+  var k=periodKey(Date.now());
+  if(state.dayKey!==k){state.dayKey=k;state.balance=state.dailyBudget;save();}
+}
+function fmt(n){return Number(n).toLocaleString('zh-CN',{maximumFractionDigits:1})}
+
+/* ===== IndexedDB 图片 ===== */
+var imgCache={};
+function idb(){
+  return new Promise(function(res,rej){
+    var r=indexedDB.open('own_db',1);
+    r.onupgradeneeded=function(e){e.target.result.createObjectStore('imgs')};
+    r.onsuccess=function(e){res(e.target.result)};
+    r.onerror=function(){rej(r.error)};
+  });
+}
+function imgPut(k,v){
+  return idb().then(function(db){
+    return new Promise(function(res,rej){
+      var t=db.transaction('imgs','readwrite');t.objectStore('imgs').put(v,k);
+      t.oncomplete=res;t.onerror=function(){rej(t.error)};
+    });
+  });
+}
+function imgDel(k){
+  delete imgCache[k];
+  return idb().then(function(db){
+    return new Promise(function(res){
+      var t=db.transaction('imgs','readwrite');t.objectStore('imgs').delete(k);
+      t.oncomplete=res;t.onerror=function(){res()};
+    });
+  }).catch(function(){});
+}
+function imgGet(k){
+  if(k in imgCache)return Promise.resolve(imgCache[k]);
+  return idb().then(function(db){
+    return new Promise(function(res){
+      var r=db.transaction('imgs').objectStore('imgs').get(k);
+      r.onsuccess=function(){imgCache[k]=r.result;res(r.result)};
+      r.onerror=function(){res(null)};
+    });
+  }).catch(function(){return null});
+}
+function preloadImgs(){
+  state.items.forEach(function(it){imgGet('i'+it.id)});
+}
+function loadImg(el,id){
+  imgGet('i'+id).then(function(d){
+    if(d){el.src=d;el.style.display='';var ph=el.parentNode.querySelector('.noimg,.im,.ph');if(ph&&ph!==el)ph.style.display='none';}
+  });
+}
+
+/* ===== 物流阶段 ===== */
+function stage(it){
+  var d=Date.now()-it.orderedAt;
+  if(d<60*60e3)return 0;        // 已支付，待发货
+  if(d<6*60*60e3)return 1;      // 已发货
+  if(d<24*60*60e3)return 2;     // 运输中
+  if(d<48*60*60e3)return 3;     // 派送中
+  return 4;                      // 已签收
+}
+var STG_LB=['已支付','已发货','运输中','派送中','已签收'];
+var STG_TX=['商家正在打包，期待感开始计时','包裹已经出发啦','正在奔向你的城市','快递小哥正在派送，马上到家','已签收入柜'];
+
+function days(ts){
+  var d=Math.floor((Date.now()-ts)/864e5);
+  if(d<=0)return '今天刚存的';
+  if(d===1)return '想要 1 天';
+  return '想要 '+d+' 天';
+}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
+/* ===== 渲染 ===== */
+function renderTop(){refreshDay();$('#hd-bal').textContent=fmt(state.balance)}
+
+var NOIMG_STYLE='display:flex;align-items:center;justify-content:center;color:#b9b2a0;font-size:12px;letter-spacing:2px;background:var(--green-soft)';
+function imgTag(it,cls,noH){
+  noH=noH||180;
+  var key='i'+it.id, d=imgCache[key];
+  if(d)return '<img class="'+cls+'" src="'+d+'" alt="">';
+  if(key in imgCache)return '<div class="noimg" style="'+NOIMG_STYLE+';height:'+noH+'px">无截图</div>';
+  return '<img class="'+cls+'" data-id="'+it.id+'" style="display:none" alt="">'
+       + '<div class="noimg" style="'+NOIMG_STYLE+';height:'+noH+'px">加载中…</div>';
+}
+
+/* ===== 标签 ===== */
+var PRESET_TAGS=['服饰','鞋子','包袋','饰品','美妆','数码','家居','文具','食品','其他'];
+var addTag='',tagEditing=false,wantFilter='';
+function allTags(){
+  var t=PRESET_TAGS.slice();
+  state.tags.forEach(function(x){if(t.indexOf(x)<0)t.push(x)});
+  return t;
+}
+function renderTagChips(){
+  var box=$('#tag-chips');if(!box)return;
+  var h='';
+  allTags().forEach(function(t){
+    h+='<button type="button" class="chip'+(addTag===t?' on':'')+'" data-tag="'+esc(t)+'">'+esc(t)+'</button>';
+  });
+  if(tagEditing)h+='<span class="chip editting"><input id="tag-new-in" maxlength="6" placeholder="标签名"></span>';
+  else h+='<button type="button" class="chip new" id="tag-new">＋ 新建</button>';
+  box.innerHTML=h;
+  box.querySelectorAll('[data-tag]').forEach(function(b){
+    b.addEventListener('click',function(){addTag=b.getAttribute('data-tag');renderTagChips()});
+  });
+  if($('#tag-new'))$('#tag-new').addEventListener('click',function(){tagEditing=true;renderTagChips()});
+  var inp=$('#tag-new-in');
+  if(inp){
+    inp.focus();
+    var done=function(){
+      var v=inp.value.trim();
+      tagEditing=false;
+      if(v){
+        if(state.tags.indexOf(v)<0){state.tags.push(v);save()}
+        addTag=v;
+      }
+      renderTagChips();
+    };
+    inp.addEventListener('blur',done);
+    inp.addEventListener('keydown',function(e){if(e.key==='Enter')inp.blur()});
+  }
+}
+
+function renderWant(){
+  var box=$('#page-want');
+  var all=state.items.filter(function(i){return i.status==='want'});
+  /* 顶部标签筛选 */
+  var used={};all.forEach(function(i){if(i.tag)used[i.tag]=1});
+  var tagList=Object.keys(used);
+  var chips='<div class="chips" style="padding:8px 0 12px">'
+    +'<button type="button" class="chip'+(wantFilter===''?' on':'')+'" data-f="">全部 '+all.length+'</button>';
+  tagList.forEach(function(t){
+    var n=all.filter(function(i){return i.tag===t}).length;
+    chips+='<button type="button" class="chip'+(wantFilter===t?' on':'')+'" data-f="'+esc(t)+'">'+esc(t)+' '+n+'</button>';
+  });
+  chips+='</div>';
+  if(!all.length){
+    box.innerHTML='<div class="empty">'
+      +'<div class="big">这里将摆满你真心想要的东西</div>'
+      +'<div class="mid">照常刷小红书、刷淘宝，被种草的时候<br>截图存进来 —— 然后在这里把它「买」下来<br>每一件都是真的，只有钱是假的</div>'
+      +'<button class="go" onclick="$(\'#fab\').click()">存入第一件心动好物</button></div>';
+    return;
+  }
+  var list=wantFilter?all.filter(function(i){return i.tag===wantFilter}):all;
+  var h=chips;
+  if(!list.length){
+    box.innerHTML=h+'<div class="empty"><div class="mid">这个分类下还没有东西</div></div>';
+    return;
+  }
+  list.forEach(function(it){
+    h+='<div class="w-card">'
+      +'<div class="w-img">'+imgTag(it,'')+'<span class="w-days">'+days(it.createdAt)+'</span></div>'
+      +'<div class="w-body">'
+      +(it.tag?'<div class="w-tag">'+esc(it.tag)+'</div>':'')
+      +'<div class="w-name">'+esc(it.name)+'</div>'
+      +(it.note?'<div class="w-note">'+esc(it.note)+'</div>':'')
+      +(it.url?'<div class="w-lnk" data-url="'+esc(it.url)+'">🔗 已存链接 · 点开看</div>':'')
+      +'<div class="w-row"><div class="w-price"><small>¥ </small>'+fmt(it.price)+'</div>'
+      +'<div class="w-acts"><button class="btn-ghost" data-edit="'+it.id+'">编辑</button>'
+      +'<button class="btn-ghost" data-del="'+it.id+'">不要了</button>'
+      +'<button class="btn-buy" data-buy="'+it.id+'">买下它</button></div></div>'
+      +'</div></div>';
+  });
+  box.innerHTML=h;
+  bindImgs(box);
+  box.querySelectorAll('[data-f]').forEach(function(c){
+    c.addEventListener('click',function(){wantFilter=c.getAttribute('data-f')||'';renderWant()});
+  });
+  box.querySelectorAll('[data-url]').forEach(function(l){
+    l.addEventListener('click',function(e){e.stopPropagation();window.open(l.getAttribute('data-url'),'_blank')});
+  });
+  box.querySelectorAll('[data-buy]').forEach(function(b){b.addEventListener('click',function(){openPay(b.getAttribute('data-buy'))})});
+  box.querySelectorAll('[data-del]').forEach(function(b){b.addEventListener('click',function(){openDel(b.getAttribute('data-del'))})});
+  box.querySelectorAll('[data-edit]').forEach(function(b){b.addEventListener('click',function(){openEditor(findItem(b.getAttribute('data-edit')))})});
+}
+
+function renderTransit(){
+  var box=$('#page-transit');
+  var list=state.items.filter(function(i){return i.status==='ordered'&&stage(i)<4});
+  if(!list.length){
+    box.innerHTML='<div class="empty"><div class="big">没有在途的包裹</div>'
+      +'<div class="mid">在「想买」里买下点什么<br>等着它（虚拟地）发货吧</div></div>';
+    return;
+  }
+  var h='';
+  list.forEach(function(it){
+    var s=stage(it);
+    var dots='';
+    for(var i=0;i<5;i++){
+      dots+='<div class="tk '+(i<s?'done':i===s?'now':'')+'"><div class="dot"></div><div class="lb">'+STG_LB[i]+'</div></div>';
+    }
+    h+='<div class="t-card"><div class="t-top">'
+      +'<div style="position:relative;width:74px;height:74px;flex-shrink:0">'+imgTag(it,'t-img',74)+'</div>'
+      +'<div class="t-info"><div class="t-name">'+esc(it.name)+'</div>'
+      +'<div class="t-price"><small>¥</small> '+fmt(it.price)+'</div>'
+      +'<div class="t-status">'+STG_TX[s]+'</div></div></div>'
+      +'<div class="track">'+dots+'</div>'
+      +'<div class="t-acts"><button class="rf" data-refund="'+it.id+'">退款</button>'
+      +'<button data-ordel="'+it.id+'">删除订单</button></div></div>';
+  });
+  box.innerHTML=h;
+  bindImgs(box);
+  box.querySelectorAll('[data-refund]').forEach(function(b){b.addEventListener('click',function(){doRefund(b.getAttribute('data-refund'))})});
+  box.querySelectorAll('[data-ordel]').forEach(function(b){b.addEventListener('click',function(){openOrderDel(b.getAttribute('data-ordel'))})});
+}
+
+function renderCloset(){
+  var box=$('#page-closet');
+  var list=state.items.filter(function(i){return i.status==='ordered'&&stage(i)===4});
+  var sum=0;list.forEach(function(i){sum+=i.price});
+  if(!list.length){
+    box.innerHTML='<div class="empty"><div class="big">柜子还空着</div>'
+      +'<div class="mid">虚拟签收的东西会陈列在这里<br>它们都是你真真切切想要过的</div></div>';
+    return;
+  }
+  var h='<div class="closet-head"><div class="n">已拥有 <b>'+list.length+'</b> 件 · 虚拟价值 <b>¥'+fmt(sum)+'</b><br>真实花费 ¥0.00</div></div><div class="c-grid">';
+  list.forEach(function(it){
+    h+='<div class="c-item" data-op="'+it.id+'"><div class="im">'+imgTag(it,'')+'</div>'
+      +'<div class="tx"><div class="nm">'+esc(it.name)+'</div><div class="pr">¥'+fmt(it.price)+'</div></div></div>';
+  });
+  box.innerHTML=h+'</div>';
+  bindImgs(box);
+  box.querySelectorAll('[data-op]').forEach(function(c){c.addEventListener('click',function(){openClosetOp(c.getAttribute('data-op'))})});
+}
+
+function bindImgs(box){
+  box.querySelectorAll('img[data-id]').forEach(function(im){
+    loadImg(im,im.getAttribute('data-id'));
+  });
+}
+
+function renderMine(){
+  var box=$('#page-mine');
+  var pct=Math.max(0,Math.min(100,Math.round(state.balance/state.dailyBudget*100)));
+  var got=state.items.filter(function(i){return i.status==='ordered'&&stage(i)===4}).length;
+  box.innerHTML=
+   '<div class="m-card m-wallet"><div class="lb">今日积分余额</div>'
+   +'<div class="num">'+fmt(state.balance)+'<span style="font-size:14px;color:var(--sub);font-weight:400"> / '+fmt(state.dailyBudget)+'</span></div>'
+   +'<div class="sub">每天凌晨 1 点自动刷新 · 1 积分 = ¥1 · 永远不花真钱</div>'
+   +'<div class="m-bar"><i style="width:'+pct+'%"></i></div></div>'
+   +'<div class="m-card"><div class="m-rows">'
+   +'<div class="m-cell" onclick="showDetail(\'orders\')"><div class="v green">'+state.vorders+'</div><div class="k">虚拟下单</div></div>'
+   +'<div class="m-cell" onclick="showDetail(\'orders\')"><div class="v">¥'+fmt(state.vspent)+'</div><div class="k">虚拟消费</div></div>'
+   +'<div class="m-cell" onclick="showDetail(\'saved\')"><div class="v gold">¥'+fmt(state.saved)+'</div><div class="k">删单省下</div></div>'
+   +'<div class="m-cell" onclick="switchTab(\'closet\')"><div class="v green">'+got+'</div><div class="k">已入柜 ›</div></div>'
+   +'</div></div>'
+   +'<div class="m-card"><div class="m-quote">这里买下的每一件，都是真实省下的钱。<br>而你的真实支出，永远是 ¥0.00。</div></div>'
+   +'<div class="m-card"><div class="set-open" onclick="openSettings()">设置<span>›</span></div></div>';
+}
+
+/* 只渲染当前激活页 + 顶栏，避免全量重绘 */
+function renderCurrent(){
+  renderTop();
+  if(activeTab==='want')renderWant();
+  else if(activeTab==='transit')renderTransit();
+  else if(activeTab==='closet')renderCloset();
+  else renderMine();
+}
+
+/* ===== 添加 / 编辑（共用一个编辑器） ===== */
+var addImg=null; // dataURL
+var editIt=null;
+$('#pick-input').addEventListener('change',function(){
+  var f=this.files[0];if(!f)return;
+  compress(f).then(function(d){
+    addImg=d;
+    var im=$('#pick-img');im.src=d;im.style.display='';
+    $('#pick').classList.add('hasimg');
+    $('#pick').querySelectorAll('.ic,span:not([id])').forEach(function(s){s.style.display='none'});
+    if(d)autoOCR(d); /* 截图选好 → 本地 OCR 猜名称价格 */
+  });
+});
+function compress(file){
+  return new Promise(function(res){
+    var img=new Image();
+    img.onload=function(){
+      var s=Math.min(1,640/img.width);
+      var c=document.createElement('canvas');
+      c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(img.src);
+      res(c.toDataURL('image/jpeg',.78));
+    };
+    img.onerror=function(){res(null)};
+    img.src=URL.createObjectURL(file);
+  });
+}
+function openEditor(it){
+  editIt=it||null;
+  addImg=null;tagEditing=false;
+  $('#add-title').textContent=editIt?'编辑它':'存入一件心动好物';
+  $('#add-save').textContent=editIt?'保存修改':'存入想买';
+  $('#in-smart').value='';
+  var sst=$('#smart-st');sst.style.display='none';sst.textContent='';
+  $('#pick-img').style.display='none';$('#pick-input').value='';
+  $('#pick').classList.remove('hasimg');
+  $('#pick').querySelectorAll('.ic,span:not([id])').forEach(function(s){s.style.display=''});
+  $('#in-name').value=editIt?editIt.name:'';
+  $('#in-price').value=editIt?editIt.price:'';
+  $('#in-note').value=editIt?(editIt.note||''):'';
+  $('#in-url').value=editIt?(editIt.url||''):'';
+  addTag=editIt?(editIt.tag||''):'';
+  renderTagChips();
+  if(editIt){
+    imgGet('i'+editIt.id).then(function(d){
+      if(d&&editIt){
+        var im=$('#pick-img');im.src=d;im.style.display='';
+        $('#pick').classList.add('hasimg');
+        $('#pick').querySelectorAll('.ic,span:not([id])').forEach(function(s){s.style.display='none'});
+      }
+    });
+  }
+  openSheet('add');
+}
+$('#fab').addEventListener('click',function(){openEditor(null)});
+$('#add-save').addEventListener('click',function(){
+  var name=$('#in-name').value.trim();
+  var price=parseFloat($('#in-price').value);
+  if(!name){toast('给它起个名字吧');return}
+  if(!(price>0)){toast('填一个大概的价格');return}
+  if(editIt){
+    var e=editIt;editIt=null;
+    e.name=name;e.price=Math.round(price*10)/10;
+    e.note=$('#in-note').value.trim();e.tag=addTag||'';
+    e.url=$('#in-url').value.trim();
+    var efin=function(){save();closeSheet('add');renderCurrent();toast('已保存修改')};
+    if(addImg)imgPut('i'+e.id,addImg).then(efin,efin);else efin();
+    return;
+  }
+  var it={id:Date.now(),name:name,price:Math.round(price*10)/10,note:$('#in-note').value.trim(),
+    tag:addTag||'',url:$('#in-url').value.trim(),
+    status:'want',createdAt:Date.now(),orderedAt:0};
+  var fin=function(){
+    state.items.unshift(it);save();closeSheet('add');renderCurrent();toast('已存入想买');
+  };
+  if(addImg){imgPut('i'+it.id,addImg).then(fin,fin)}else fin();
+});
+$('#add-cancel').addEventListener('click',function(){closeSheet('add');editIt=null});
+
+/* ===== 智能识别链接 ===== */
+function detectPlatform(u){
+  if(/taobao|tmall/i.test(u))return '淘宝';
+  if(/pinduoduo|yangkeduo/i.test(u))return '拼多多';
+  if(/xiaohongshu|xhslink/i.test(u))return '小红书';
+  if(/douyin|iesdouyin/i.test(u))return '抖音商城';
+  return '';
+}
+function fetchTimeout(url,ms){
+  return Promise.race([
+    fetch(url),
+    new Promise(function(_,rej){setTimeout(function(){rej(new Error('timeout'))},ms)})
+  ]);
+}
+function metaFromHTML(html){
+  var doc=new DOMParser().parseFromString(html,'text/html');
+  function meta(sel){var e=doc.querySelector(sel);return e?(e.getAttribute('content')||''):''}
+  var title=meta('meta[property="og:title"]')||meta('meta[name="og:title"]')||meta('meta[name="title"]')||'';
+  if(!title){var t=doc.querySelector('title');title=t?t.textContent.trim():''}
+  var image=meta('meta[property="og:image"]')||meta('meta[name="og:image"]')||meta('meta[name="twitter:image"]')||'';
+  var desc=meta('meta[property="og:description"]')||meta('meta[name="description"]')||'';
+  var price='';
+  var m=(title+' '+desc).match(/[¥￥]\s*(\d+(?:\.\d+)?)/);
+  if(m)price=m[1];
+  if(!price){
+    var scripts=doc.querySelectorAll('script[type="application/ld+json"]');
+    for(var i=0;i<scripts.length&&!price;i++){
+      try{
+        var j=JSON.parse(scripts[i].textContent);
+        var arr=Array.isArray(j)?j:[j];
+        for(var k=0;k<arr.length;k++){
+          var o=arr[k]&&arr[k].offers;var of=Array.isArray(o)?o[0]:o;
+          var p=of&&of.price?Number(of.price):0;
+          if(p>0){price=String(p);break}
+        }
+      }catch(e){}
+    }
+  }
+  return {title:title,image:image,price:price};
+}
+function tryMicrolink(u){
+  return fetchTimeout('https://api.microlink.io/?url='+encodeURIComponent(u),16000)
+    .then(function(r){return r.json()})
+    .then(function(j){
+      if(j&&j.status==='success'&&j.data&&(j.data.title||j.data.image)){
+        return {title:j.data.title||'',image:(j.data.image&&j.data.image.url)||'',price:''};
+      }
+      throw new Error('no');
+    });
+}
+function tryProxy(u){
+  return fetchTimeout('https://api.allorigins.win/raw?url='+encodeURIComponent(u),16000)
+    .then(function(r){return r.text()})
+    .then(function(html){
+      if(!html||html.length<200)throw new Error('no');
+      return metaFromHTML(html);
+    });
+}
+function tryJina(u){
+  return fetchTimeout('https://r.jina.ai/'+u,25000)
+    .then(function(r){return r.text()})
+    .then(function(txt){
+      if(!txt||txt.length<100)throw new Error('no');
+      var title=(txt.match(/^Title:\s*(.+)$/m)||[])[1]||'';
+      title=String(title).trim();
+      var im=(txt.match(/!\[[^\]]*\]\((https?:\/\/[^)\s]+)\)/)||[])[1]||'';
+      if(!title&&!im)throw new Error('no');
+      return {title:title,image:im,price:''};
+    });
+}
+function imgToData(url){
+  var direct=fetchTimeout(url,12000).then(function(r){return r.blob()});
+  var proxied=fetchTimeout('https://api.allorigins.win/raw?url='+encodeURIComponent(url),12000)
+    .then(function(r){return r.blob()});
+  return direct.catch(function(){return proxied}).then(function(b){
+    if(!b||(b.type&&b.type.indexOf('text/')===0)||b.size<1000)throw new Error('not img');
+    return new Promise(function(res,rej){
+      var fr=new FileReader();
+      fr.onload=function(){res(fr.result)};
+      fr.onerror=function(){rej(fr.error)};
+      fr.readAsDataURL(b);
+    });
+  });
+}
+function shrinkDataURL(d){
+  return new Promise(function(res){
+    var img=new Image();
+    img.onload=function(){
+      var s=Math.min(1,640/img.width);
+      var c=document.createElement('canvas');
+      c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      res(c.toDataURL('image/jpeg',.78));
+    };
+    img.onerror=function(){res(d)};
+    img.src=d;
+  });
+}
+var smartBusy=false;
+/* ===== 截图 OCR（Tesseract 本地识别，图片不上传） ===== */
+function loadTesseract(){
+  if(window.Tesseract)return Promise.resolve();
+  if(loadTesseract.p)return loadTesseract.p;
+  loadTesseract.p=new Promise(function(res,rej){
+    var s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    s.onload=res;s.onerror=function(){rej(new Error('engine load fail'))};
+    document.head.appendChild(s);
+  });
+  return loadTesseract.p;
+}
+function ocrImage(dataUrl){
+  var run=loadTesseract().then(function(){
+    return Tesseract.recognize(dataUrl,'chi_sim+eng');
+  }).then(function(r){return (r&&r.data&&r.data.text)||''});
+  return Promise.race([run,new Promise(function(_,rej){
+    setTimeout(function(){rej(new Error('ocr timeout'))},90000);
+  })]);
+}
+/* 从 OCR 文本里猜 名称 + 价格（收紧：只认强信号，宁缺勿错） */
+function parseOCR(text){
+  var lines=String(text).split('\n').map(function(l){return l.trim()}).filter(function(l){return l});
+  var price='';
+  for(var i=0;i<lines.length&&!price;i++){
+    var l=lines[i];
+    /* 销量/评价/尺码等行：没有货币符号就整行跳过（"已售 3000""月销1万"是误抓主源） */
+    if(!/[¥￥]/.test(l)&&/已售|月销|销量|付款|收货|评价|库存|件数|浏览|人气/.test(l))continue;
+    var m=l.match(/[¥￥]\s*(\d+(?:\.\d{1,2})?)/);            /* ¥199 / ￥129.9 —— 最强信号 */
+    if(!m)m=l.match(/(?:到手价?|券后|活动价?|促销价?|特价|价格)\D{0,4}(\d+(?:\.\d{1,2})?)/); /* 关键词 */
+    if(!m)m=l.match(/(\d+\.\d{2})(?!\d)/);                   /* 199.00 两位小数价格样式 */
+    if(m){var v=Number(m[1]);if(v>0&&v<100000)price=String(v)}
+  }
+  var name='',nameScore=0;
+  lines.forEach(function(l){
+    if(/^(立即|加入|购买|领券|优惠券|客服|收藏|评价|详情|已售|月销|销量|退换|包邮|快递|旗舰店|官方|进入|店铺|分享|购物车|下单|客服|客服)/.test(l))return;
+    var cn=(l.match(/[\u4e00-\u9fa5]/g)||[]).length;
+    if(cn<4)return;
+    if(l.replace(/[\u4e00-\u9fa5a-zA-Z0-9（）()\[\]【】·、，,。\-\s\/]/g,'').length>2)return;
+    /* 商品词特征加分：含这些词的行更像商品名 */
+    var kw=/(新款|女|男|款|季|风|套装|色|型|代|系列|百搭|宽松|加绒|短袖|长袖|连帽|高腰|直筒|ins|同款)/.test(l)?10:0;
+    var score=cn+kw;
+    if(score>nameScore){name=l;nameScore=score}
+  });
+  return {name:name,price:price};
+}
+function upscaleForOCR(d){
+  return new Promise(function(res){
+    var img=new Image();
+    img.onload=function(){
+      var w=img.width,sc=Math.min(1400/Math.max(w,1),2.2);
+      if(sc<=1.05){res(d);return}
+      var c=document.createElement('canvas');
+      c.width=Math.round(w*sc);c.height=Math.round(img.height*sc);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      res(c.toDataURL('image/jpeg',.9));
+    };
+    img.onerror=function(){res(d)};
+    img.src=d;
+  });
+}
+function autoOCR(d){
+  var st=$('#smart-st');st.style.display='block';
+  st.textContent='正在识别截图里的文字（首次需下载识别引擎，约15MB，之后有缓存）…';
+  upscaleForOCR(d).then(ocrImage).then(function(text){
+    var r=parseOCR(text);
+    if(r.price&&!$('#in-price').value)$('#in-price').value=r.price;
+    if(r.name&&!$('#in-name').value)$('#in-name').value=r.name.slice(0,40);
+    if(r.name||r.price){
+      st.textContent='✓ 从截图认出了'+(r.name?'名称':'')+(r.name&&r.price?'、':'')+(r.price?'价格':'')+'（猜的，核对下再保存）';
+    }else{
+      st.textContent='截图里没认出可用的名称/价格（只认带¥符号的强信号，宁缺勿错），手动填一下，截图本身已经存好了';
+    }
+  }).catch(function(){
+    st.textContent='截图识别没跑起来（引擎下载失败或网络较慢），名称价格手动填一下';
+  });
+}
+/* 解析整段分享文案：抠出链接 + 猜名称 + 猜价格
+   【】的规则各平台不同：抖音「看看【X】的作品」=作者昵称；小红书【】=博主名；淘宝/拼多多多为商品标题但可能是店铺名。
+   所以名称永远是「最可能的猜测」，界面提示用户核对。 */
+function parseShareBlob(text){
+  var t=text.trim();
+  var urlM=t.match(/https?:\/\/[a-zA-Z0-9.\-/%?=&#_+~:;,@!$'()*\[\]]+/);
+  var url=urlM?urlM[0].replace(/[，。）)\].。!！?？;；]+$/,''):'';
+  var plat='';
+  if(/taobao|tmall|tb\.cn/i.test(url))plat='taobao';
+  else if(/pinduoduo|yangkeduo/i.test(url))plat='pdd';
+  else if(/douyin|iesdouyin/i.test(url))plat='douyin';
+  else if(/xiaohongshu|xhslink/i.test(url))plat='xhs';
+  var title='',authorMode=false;
+  var m=t.match(/【([^】]{2,40})】/);
+  if(m){
+    var idx=t.indexOf(m[0]);
+    var after=t.substr(idx+m[0].length,8);
+    var isAuthor=/^\s*(的作品|的视频|的直播|的笔记|发布了一篇)/.test(after);
+    if(isAuthor)authorMode=true; /* 文案主体是作者+作品，商品名不在文字里 */
+    /* 小红书【】必然是博主名，跳过；抖音带「的X」后缀的是作者，跳过 */
+    if(!isAuthor&&plat!=='xhs')title=m[1];
+  }
+  if(!title){m=t.match(/《([^》]{2,40})》/);if(m)title=m[1]}
+  if(!title&&plat!=='xhs'&&!authorMode){
+    var rest=t.replace(/https?:\/\/\S+/g,' ');
+    rest=rest.replace(/[0-9]+(\.[0-9]+)?\s*[a-zA-Z]{0,4}:\/\//g,' ');
+    rest=rest.replace(/[￥$₤][a-zA-Z0-9]{6,}[￥$₤]?/g,' ');
+    ['复制本段文字','打开手机淘宝','复制打开抖音','看看','去抖音搜索','点击链接','直接打开','快来看看吧',
+     '发布了一篇小红书笔记','复制这段文案','打开拼多多','复制此段文案','帮我砍一刀','抖音商城'
+    ].forEach(function(j){rest=rest.split(j).join(' ')});
+    rest=rest.replace(/^[0-9\s.]+/,'');
+    rest=rest.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]+/g,' ').trim();
+    if(rest.length>=5&&rest.length<=40&&!/^[0-9\s]+$/.test(rest))title=rest;
+  }
+  /* 价格：券后/到手/¥x/x元/x米（拼多多黑话），避开口令开头的数字 */
+  var price='';
+  var pm=t.match(/(?:券后|到手价?|仅需|只要|特惠价?|促销价?|现价)\s*[¥￥]?\s*(\d+(?:\.\d+)?)/);
+  if(!pm)pm=t.match(/[¥￥]\s*(\d+(?:\.\d+)?)/);
+  if(!pm)pm=t.match(/(\d+(?:\.\d+)?)\s*[元米](?![a-zA-Z:\/])/);
+  if(pm){var v=pm[1];if(v&&Number(v)>0&&Number(v)<10000)price=v}
+  return {url:url,title:title,price:price,plat:plat};
+}
+$('#smart-go').addEventListener('click',function(){
+  if(smartBusy)return;
+  var raw=$('#in-smart').value.trim();
+  if(!raw){toast('先粘贴分享文案或链接');return}
+  var btn=$('#smart-go'),st=$('#smart-st');
+  var blob=parseShareBlob(raw);
+  /* 本地秒提：名称 + 价格（名称是猜测，必须让用户核对） */
+  if(blob.title)$('#in-name').value=blob.title.slice(0,40);
+  if(blob.price&&!$('#in-price').value)$('#in-price').value=blob.price;
+  var doneLocal=(blob.title?'名称已猜好(核对下)':'')+(blob.price?' 价格已提好':'');
+  if(!blob.url){
+    st.style.display='block';
+    if(blob.title){
+      if(!$('#in-note').value)$('#in-note').value='来自分享文案';
+      st.textContent='✓ '+doneLocal+'但这段里没有链接——价格没提到的话手动填一下，再截一张图，链接留空也没关系';
+    }else{
+      st.textContent='这段文字里没认出链接和名称：口令是平台加密的，浏览器打不开。请用「分享→复制」整段带【标题】的文字，或直接截图+手动填';
+    }
+    return;
+  }
+  var u=blob.url;
+  var pf=detectPlatform(u);
+  if(pf==='淘宝'||pf==='拼多多'){
+    /* 这两家锁死商品页（登录墙+反爬，实测所有公开通道全部失败）——本地提取为主，仍然试一把图片 */
+    st.style.display='block';
+    if(doneLocal){
+      st.textContent='✓ '+doneLocal+'。注意：【】里抓的可能是店铺名不是商品名，保存前看一眼。淘宝/拼多多的商品页锁死了（只有登录过的服务器能读，微信也读不了它），主图自己截一张最快';
+    }else{
+      st.textContent='淘宝/拼多多的商品页锁死了（连微信都读不了它），名称价格自动抓不了。请手动填，或用「分享→复制」整段带【标题】的文字糊进来试试';
+    }
+    $('#in-url').value=u;
+    if(!$('#in-note').value&&pf)$('#in-note').value='来自'+pf;
+    return;
+  }
+  smartBusy=true;
+  btn.textContent='识别中…';btn.style.opacity=.5;
+  st.style.display='block';
+  st.textContent=(doneLocal?'✓ '+doneLocal:'')+'正在读取'+(pf||'该平台')+'的商品信息，最多等 25 秒…';
+  $('#in-url').value=u;
+  var data=null;
+  tryMicrolink(u).then(function(d){data=d},function(){
+    return tryJina(u).then(function(d){data=d});
+  }).then(function(){
+    return data?null:tryProxy(u).then(function(d){data=d});
+  }).then(function(){
+    if(!data||!(data.title||data.image))throw new Error('empty');
+    if(data.title)$('#in-name').value=String(data.title).replace(/\s*[|｜\-–]\s*(淘宝|天猫|小红书|拼多多|抖音).*$/,'').slice(0,40);
+    if(data.price)$('#in-price').value=data.price;
+    if(pf&&!$('#in-note').value)$('#in-note').value='来自'+pf;
+    if(!data.image){
+      st.textContent='✓ 名称'+(data.price?'、价格':'')+'已填好（主图没抓到，可自己截一张）';
+      return;
+    }
+    st.textContent='✓ 名称'+(data.price?'、价格':'')+'已填好，正在抓主图…';
+    return imgToData(data.image).then(shrinkDataURL).then(function(d2){
+      addImg=d2;
+      var im=$('#pick-img');im.src=d2;im.style.display='';
+      $('#pick').querySelectorAll('.ic,span:not([id])').forEach(function(s){s.style.display='none'});
+      st.textContent='✓ 识别完成！图、名称'+(data.price?'、价格':'')+'都填好了，检查一下再保存';
+    }).catch(function(){
+      st.textContent='✓ 名称'+(data.price?'、价格':'')+'已填好（主图被平台保护，可自己截一张）';
+    });
+  }).catch(function(){
+    st.textContent='这个页面被平台锁住了'+(blob.title?'——不过名称已从文案提取好了':'')+'。名称/价格手动填一下，截图截一张，链接已经存好了';
+  }).then(function(){
+    smartBusy=false;btn.textContent='识别';btn.style.opacity='';
+  });
+});
+
+/* ===== 支付 ===== */
+var payIt=null;
+function openPay(id){
+  var it=state.items.filter(function(x){return String(x.id)===String(id)})[0];
+  if(!it)return;
+  if(it.price>state.balance){toast('积分不够啦，明天凌晨 1 点刷新 · 或者先退掉/删掉一些');return}
+  payIt=it;
+  $('#pay-name').textContent=it.name;
+  $('#pay-price').textContent='¥'+fmt(it.price);
+  $('#pay-bal').textContent=fmt(state.balance)+' 积分';
+  $('#pay-after').textContent=fmt(state.balance-it.price)+' 积分';
+  var im=$('#pay-img'),ph=$('#pay-ph');
+  if(it.hasImg===false&&false){}
+  imgGet('i'+it.id).then(function(d){
+    if(d&&payIt===it){im.src=d;im.style.display='';ph.style.display='none'}
+    else{im.style.display='none';ph.style.display='';ph.textContent='无图'}
+  });
+  openSheet('pay');
+}
+$('#pay-ok').addEventListener('click',function(){
+  if(!payIt)return;
+  var it=payIt;
+  state.balance-=it.price;
+  it.status='ordered';it.orderedAt=Date.now();
+  state.vorders++;state.vspent+=it.price;
+  save();closeSheet('pay');
+  $('#ok-txt').innerHTML='「'+esc(it.name)+'」已经是你的了<br>虚拟包裹即将出发 · 而这 <b>¥'+fmt(it.price)+'</b> 留在了你的口袋';
+  openSheet('ok');renderCurrent();
+  payIt=null;
+});
+$('#pay-cancel').addEventListener('click',function(){closeSheet('pay');payIt=null});
+$('#ok-close').addEventListener('click',function(){closeSheet('ok')});
+
+/* ===== 退款 ===== */
+function findItem(id){return state.items.filter(function(x){return String(x.id)===String(id)})[0]}
+function doRefund(id){
+  var it=findItem(id);if(!it)return;
+  state.balance+=it.price;
+  it.status='want';it.orderedAt=0; // 回到想买，保留最初想要的天数
+  state.vorders=Math.max(0,state.vorders-1);
+  state.vspent=Math.max(0,state.vspent-it.price);
+  save();renderCurrent();
+  toast('退款成功 · ¥'+fmt(it.price)+' 积分已退回，它回到了想买');
+}
+
+/* 衣柜单件操作 */
+var csIt=null;
+function openClosetOp(id){
+  var it=findItem(id);if(!it)return;
+  csIt=it;
+  $('#cs-name').textContent=it.name;
+  $('#cs-price').textContent='¥'+fmt(it.price);
+  var lb=$('#cs-link');
+  if(it.url){lb.style.display='';lb.onclick=function(){window.open(it.url,'_blank')}}
+  else lb.style.display='none';
+  var im=$('#cs-img'),ph=$('#cs-ph');
+  imgGet('i'+it.id).then(function(d){
+    if(d&&csIt===it){im.src=d;im.style.display='';ph.style.display='none'}
+    else{im.style.display='none';ph.style.display='';ph.textContent='无图'}
+  });
+  openSheet('cs');
+}
+$('#cs-refund').addEventListener('click',function(){
+  if(!csIt)return;var id=String(csIt.id);
+  closeSheet('cs');csIt=null;doRefund(id);
+});
+$('#cs-del').addEventListener('click',function(){
+  if(!csIt)return;var id=String(csIt.id);
+  closeSheet('cs');csIt=null;openOrderDel(id);
+});
+$('#cs-edit').addEventListener('click',function(){
+  if(!csIt)return;var it=csIt;
+  closeSheet('cs');csIt=null;openEditor(it);
+});
+$('#cs-close').addEventListener('click',function(){closeSheet('cs');csIt=null});
+$('#dt-close').addEventListener('click',function(){closeSheet('dt')});
+
+/* ===== 删除：想买删除（省下） / 订单删除（不退积分） ===== */
+var delIt=null,delMode='want';
+function openDel(id){
+  var it=findItem(id);if(!it)return;
+  delMode='want';delIt=it;
+  $('#del-q').innerHTML='「<b>'+esc(it.name)+'</b>」<br>真的不想要了吗？';
+  $('#del-keep').textContent='先留着，再犹豫一下';
+  $('#del-drop').textContent='不想要了（省下这笔钱）';
+  openSheet('del');
+}
+function openOrderDel(id){
+  var it=findItem(id);if(!it)return;
+  delMode='order';delIt=it;
+  $('#del-q').innerHTML='删除「<b>'+esc(it.name)+'</b>」的订单？<br>删除后积分不退、记录消失';
+  $('#del-keep').textContent='先留着';
+  $('#del-drop').textContent='确认删除';
+  openSheet('del');
+}
+$('#del-keep').addEventListener('click',function(){closeSheet('del');delIt=null;toast(delMode==='order'?'好，先留着':'好，再让它躺一会儿')});
+$('#del-drop').addEventListener('click',function(){
+  if(!delIt)return;
+  var it=delIt;
+  state.items=state.items.filter(function(x){return x!==it});
+  imgDel('i'+it.id);
+  if(delMode==='want'){
+    state.saved+=it.price;
+    state.savedLog.unshift({name:it.name,price:it.price,ts:Date.now()});
+    toast('省下 ¥'+fmt(it.price)+'，这笔钱你真正留下了');
+  }else{
+    toast('订单已删除');
+  }
+  save();closeSheet('del');renderCurrent();
+  delIt=null;
+});
+
+/* ===== 明细弹层 ===== */
+function dateStr(ts){
+  var d=new Date(ts);
+  return (d.getMonth()+1)+'月'+d.getDate()+'日 '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function showDetail(type){
+  var body=$('#dt-body');
+  if(type==='orders'){
+    $('#dt-title').textContent='订单明细';
+    var list=state.items.filter(function(i){return i.status==='ordered'});
+    if(!list.length){body.innerHTML='<div class="dt-empty">还没有虚拟订单<br>在「想买」里买下点什么吧</div>'}
+    else{
+      var h='<div class="dt-head">共 '+list.length+' 笔 · 合计 ¥'+fmt(state.vspent)+'</div>';
+      list.forEach(function(it){
+        h+='<div class="dt-row"><div class="im2">'+imgTag(it,'')+'</div>'
+          +'<div class="nm">'+esc(it.name)+'<small>'+dateStr(it.orderedAt)+' 下单'+(it.tag?' · '+esc(it.tag):'')+'</small></div>'
+          +'<div class="pr">¥'+fmt(it.price)+'</div></div>';
+      });
+      body.innerHTML=h;
+    }
+  }else{
+    $('#dt-title').textContent='省下明细';
+    if(!state.savedLog.length){body.innerHTML='<div class="dt-empty">还没有省下记录<br>删掉一件不想要的东西，就会记在这里</div>'}
+    else{
+      var h='<div class="dt-head">累计省下 ¥'+fmt(state.saved)+'</div>';
+      state.savedLog.forEach(function(lg){
+        h+='<div class="dt-row"><div class="nm">'+esc(lg.name)+'<small>'+dateStr(lg.ts)+' 删单</small></div>'
+          +'<div class="pr">省 ¥'+fmt(lg.price)+'</div></div>';
+      });
+      body.innerHTML=h;
+    }
+  }
+  openSheet('dt');
+  body.querySelectorAll('img[data-id]').forEach(function(im){loadImg(im,im.getAttribute('data-id'))});
+}
+
+/* ===== 设置 ===== */
+function openSettings(){
+  $('#st-budget-v').textContent=fmt(state.dailyBudget);
+  openSheet('st');
+}
+$('#st-close').addEventListener('click',function(){closeSheet('st')});
+$('#st-budget').addEventListener('click',function(){
+  if($('#st-budget-in'))return;
+  var btn=this,vv=$('#st-budget-v');
+  vv.style.display='none';
+  var inp=document.createElement('input');
+  inp.type='number';inp.id='st-budget-in';inp.value=state.dailyBudget;
+  btn.appendChild(inp);inp.focus();inp.select();
+  var done=function(){
+    var v=parseFloat(inp.value);
+    inp.remove();vv.style.display='';
+    if(v>0&&Math.round(v)!==state.dailyBudget){
+      state.dailyBudget=Math.round(v);save();
+      toast('已改为每天 '+fmt(state.dailyBudget)+' 积分，明天凌晨 1 点生效');
+    }
+    vv.textContent=fmt(state.dailyBudget);
+  };
+  inp.addEventListener('blur',done);
+  inp.addEventListener('keydown',function(e){if(e.key==='Enter')inp.blur()});
+});
+$('#st-export').addEventListener('click',function(){
+  toast('正在打包全部截图...');
+  Promise.all(state.items.map(function(it){
+    return imgGet('i'+it.id).then(function(d){return {id:it.id,img:d||null}});
+  })).then(function(imgs){
+    var data={app:'own',v:1,exportedAt:Date.now(),
+      state:{balance:state.balance,dayKey:state.dayKey,saved:state.saved,vspent:state.vspent,
+        vorders:state.vorders,tags:state.tags,savedLog:state.savedLog,dailyBudget:state.dailyBudget},
+      items:state.items,imgs:imgs};
+    var blob=new Blob([JSON.stringify(data)],{type:'application/json'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='own-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a);a.click();a.remove();
+    toast('备份文件已下载（含全部截图，妥善保存）');
+  });
+});
+$('#st-import').addEventListener('click',function(){
+  closeSheet('st');
+  $('#dt-title').textContent='从备份导入';
+  $('#dt-body').innerHTML='<textarea id="imp-ta" placeholder="把备份 JSON 文件的内容粘贴到这里..." '
+    +'style="width:100%;height:170px;border:1.4px solid var(--line);border-radius:12px;padding:10px;font-size:12px;background:#fdfcf9;font-family:monospace;box-sizing:border-box;resize:none"></textarea>'
+    +'<button class="btn-main" id="imp-go" style="margin-top:14px">导入并覆盖当前数据</button>'
+    +'<div style="font-size:11px;color:var(--red);text-align:center;margin-top:10px">导入会覆盖当前所有数据，请先导出当前数据</div>';
+  openSheet('dt');
+  $('#imp-go').addEventListener('click',function(){
+    try{
+      var d=JSON.parse($('#imp-ta').value);
+      if(!d||!Array.isArray(d.items))throw new Error('bad');
+      var s=d.state||{};
+      state.balance=s.balance||MONTHLY;state.dayKey=s.dayKey||'';
+      state.saved=s.saved||0;state.vspent=s.vspent||0;state.vorders=s.vorders||0;
+      state.tags=Array.isArray(s.tags)?s.tags:[];
+      state.savedLog=Array.isArray(s.savedLog)?s.savedLog:[];
+      state.dailyBudget=(s.dailyBudget>0)?s.dailyBudget:MONTHLY;
+      state.items=d.items;
+      save();imgCache={};
+      (d.imgs||[]).forEach(function(m){if(m&&m.img)imgPut('i'+m.id,m.img)});
+      closeSheet('dt');renderCurrent();preloadImgs();
+      toast('导入成功，数据已恢复');
+    }catch(e){toast('备份内容无法识别，检查是否粘贴完整')}
+  });
+});
+$('#st-clear').addEventListener('click',function(){
+  closeSheet('st');
+  $('#dt-title').textContent='清空所有数据';
+  $('#dt-body').innerHTML='<div style="font-size:13.5px;line-height:2;text-align:center;color:var(--sub)">'
+    +'将删除全部想买、订单、衣柜记录和截图<br><b style="color:var(--red)">此操作不可撤销</b></div>'
+    +'<button class="btn-gold" id="clr-go" style="margin-top:16px">我确定了，全部清空</button>';
+  openSheet('dt');
+  $('#clr-go').addEventListener('click',function(){
+    localStorage.removeItem(LS);
+    try{indexedDB.deleteDatabase('own_db')}catch(e){}
+    location.reload();
+  });
+});
+
+/* ===== sheet/toast 工具 ===== */
+function openSheet(n){$('#'+n+'-mask').classList.add('show');$('#'+n+'-sheet').classList.add('show')}
+function closeSheet(n){$('#'+n+'-mask').classList.remove('show');$('#'+n+'-sheet').classList.remove('show')}
+['add','pay','ok','del','cs','dt','st'].forEach(function(n){
+  $('#'+n+'-mask').addEventListener('click',function(){closeSheet(n);
+    if(n==='pay')payIt=null;if(n==='del')delIt=null;if(n==='cs')csIt=null});
+});
+var toastT=null;
+function toast(s){
+  var t=$('#toast');t.textContent=s;t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('show')},2200);
+}
+
+/* ===== tab 切换 ===== */
+var activeTab='want';
+function switchTab(name){
+  activeTab=name;
+  $$('nav .tab').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-tab')===name)});
+  $$('.page').forEach(function(p){p.classList.toggle('active',p.id==='page-'+name)});
+  renderCurrent();
+}
+$$('nav .tab').forEach(function(t){
+  t.addEventListener('click',function(){switchTab(t.getAttribute('data-tab'))});
+});
+document.addEventListener('visibilitychange',function(){if(!document.hidden)renderCurrent()});
+setInterval(renderCurrent,120000);
+
+renderCurrent();
+preloadImgs();
+</script>
+</body>
+</html>
