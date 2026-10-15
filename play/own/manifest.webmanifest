@@ -1,0 +1,12 @@
+{
+  "name": "拥有 · 不花一分钱的满足",
+  "short_name": "拥有",
+  "description": "把种草的真实好物截图存进来，用积分买下它们——满足欲望，零真实支出",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f7f4ef",
+  "theme_color": "#2d4a3e",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
